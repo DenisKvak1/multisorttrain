@@ -7,7 +7,7 @@
         name="flexRadioDefault"
         id="defalutSort"
         value="default"
-        v-model="selectedSortOption"
+        @input="switchHander"
       >
       <label class="form-check-label" for="defalutSort">
         По умолчанию
@@ -20,7 +20,7 @@
         name="flexRadioDefault"
         id="byMaxSort"
         value="ascending"
-        v-model="selectedSortOption"
+        @input="switchHander"
       >
       <label class="form-check-label" for="byMaxSort">
         По возрастанию
@@ -32,7 +32,7 @@
         name="flexRadioDefault" 
         id="byMinSort" 
         value="descending" 
-        v-model="selectedSortOption">
+        @input="switchHander">
     <label class="form-check-label" for="byMinSort">
         По убыванию
     </label>
@@ -42,16 +42,11 @@
 
 <script>
 export default {
-  data(){
-    return{
-        selectedSortOption: 'default',
+  methods:{
+    switchHander(event){
+      this.$emit('switchSort', event.target.value)
     }
   },
-  watch:{
-    selectedSortOption(newValue) {
-      this.$emit('switchSort', newValue)
-    },
-  }
 }
 
 </script>

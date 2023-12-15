@@ -4,14 +4,14 @@
           <span>Минимальная цена: <span v-if="!ot">0</span><span v-if="ot">{{ot}}</span></span>
           <div class="d-flex mt-2 ">
             <p>От</p>
-            <input type="range" class="form-range" min="0" :max="max" step="1"  v-model="ot" >
+            <input type="range" class="form-range" min="0" :max="max" step="1" @input="otHandler"  v-model="ot" >
           </div>
         </div>
         <div>
           <span>Максимальная цена: <span v-if="!doT">0</span><span v-if="doT">{{doT}}</span></span>
           <div class="d-flex mt-2 ">
             <p>От</p>
-            <input type="range" class="form-range" min="0" :max="max" step="1"  v-model="doT">
+            <input type="range" class="form-range" min="0" :max="max+1" step="1" @input="doHandler"  v-model="doT">
           </div>
         </div>
     </div>
@@ -20,9 +20,9 @@
 <script>
   export default {
     props:{
-            products:{
-                type: Array,
-        }
+      products:{
+        type: Array,
+      }
     },
     data(){
       return{
@@ -31,14 +31,14 @@
         doT: `${this.products.reduce((max, product) => (product.price > max ? product.price : max), 0)}`,
       }
     },
-    watch:{
-        ot(newValue) {
-            this.$emit('ot', newValue)
-        },
-        doT(newValue) {
-            this.$emit('do', newValue)
-        },
-    }
+    methods:{
+      doHandler(event){
+        this.$emit('do', event.target.value)
+      },
+      otHandler(event){
+        this.$emit('ot', event.target.value)
+      }
+    },
   }
 </script>
 <style>
