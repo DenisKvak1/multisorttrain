@@ -25,4 +25,14 @@ export default {
     grid-template-columns: repeat(3,1fr);
     gap: 15px;
 }
+@media (max-width: 768px){
+  .goods{
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+@media (max-width: 540px){
+  .goods{
+    grid-template-columns: repeat(1,1fr);
+  }
+}
 </style>

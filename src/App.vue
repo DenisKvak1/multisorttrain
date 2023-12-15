@@ -2,7 +2,7 @@
   <div class="container">
     <TitleStore class="title"></TitleStore>
     <div class="store">
-      <sortBlock class="sort" @switchSort="switchSortHandler" @search="searchHandler" @ot="otHandler" @do="doHandler"></sortBlock>
+      <sortBlock v-if="products" class="sort" :products="products" @switchSort="switchSortHandler" @search="searchHandler" @ot="otHandler" @do="doHandler" ></sortBlock>
       <goodsComponent class="goods" :dataCard="sortFilterSearch"></goodsComponent>
     </div>
   </div>
@@ -67,23 +67,28 @@ export default {
           return data
       }
     },
-    search(data, prefix){
-      if(!prefix){
+    search(data, searchTerm) {
+      if(!searchTerm){
         return data
       }
-      return data ? data.filter(product => product.title.toLowerCase().startsWith(prefix.toLowerCase())) : null
+      const lowercaseSearchTerm = searchTerm.toLowerCase();
+      const regex = new RegExp(`\\b${lowercaseSearchTerm}`, 'i'); 
+
+      return data.filter(item => {
+        const values = Object.values(item);
+        return values.some(value => {
+          if (typeof value === 'string') {
+            return regex.test(value.toLowerCase());
+          }
+          return false;
+        });
+      });
     },
     otFilter(data, ot){
-      if(!ot){
-        return data
-      }
-      return data.filter(item=>item.price>ot)
+      return ot ? data.filter(item=>item.price>ot) : data
     },
     doFilter(data, doT){
-      if(!doT){
-        return data
-      }
-      return data.filter(item=>item.price<doT)
+      return doT ? data.filter(item=>item.price<doT) : data
     }
   },
   computed: {
@@ -118,9 +123,8 @@ export default {
   border-radius: 60px;
 }
 .title{
-  display: flex;
-  justify-content: center;
   margin-bottom: 10px;
+  text-align: center;
 }
 .store{
   display: flex;
@@ -133,4 +137,16 @@ export default {
 .sort{
   width: 20%;
 }
+@media (max-width: 1240px){
+  .store{
+    flex-direction: column;
+  }
+  .sort{
+    width: 100%;
+  }
+  .goods{
+    width: 100%;
+  }
+}
+
 </style>

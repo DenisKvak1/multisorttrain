@@ -1,17 +1,24 @@
 <template>
-  <div class="test">
+  <div class="blockSort">
     <form class="d-flex search mt-2">
-        <input class="form-control me-2" placeholder="Search" id="SearchInput" v-model="input">
-        <button class="btn btn-outline-success" type="button" id="btnSearch">Поиск</button>
+        <input class="form-control me-2" id="SearchInput" v-model="input">
+        <button class="btn btn-outline-secondary" type="button" id="btnSearch">Поиск</button>
     </form>
-    <div class="otDoPrice">
-        <div class="d-flex mt-2">
-            <h4>От</h4>
-            <input type="number" class="form-control" v-model="ot">
+    <div class="otDoPrice d-flex flex-column" >
+      
+        <div>
+          <span>Минимальная цена: <span v-if="!ot">0</span><span v-if="ot">{{ot}}</span></span>
+          <div class="d-flex mt-2 ">
+            <p>От</p>
+            <input type="range" class="form-range" min="0" :max="max" step="1"  v-model="ot" >
+          </div>
         </div>
-        <div class="d-flex mt-2">
-            <h4>До</h4>
-            <input type="number" class="form-control" v-model="doT">
+        <div>
+          <span>Максимальная цена: <span v-if="!doT">0</span><span v-if="doT">{{doT}}</span></span>
+          <div class="d-flex mt-2 ">
+            <p>От</p>
+            <input type="range" class="form-range" min="0" :max="max" step="1"  v-model="doT">
+          </div>
         </div>
     </div>
     <div class="mt-2">
@@ -59,13 +66,19 @@
 
 <script>
 export default {
+  props:{
+    products:{
+      type: Array,
+    }
+  },
     data() {
     return {
       selectedSortOption: 'default',
       input: '',
-      ot: '',
-      doT: ''
-    };
+      ot: '0',
+      max: this.products.reduce((max, product) => (product.price > max ? product.price : max), 0),
+      doT: `${this.products.reduce((max, product) => (product.price > max ? product.price : max), 0)}`,
+    }
   },
   watch: {
     selectedSortOption(newValue) {
@@ -80,25 +93,35 @@ export default {
     },
     doT(newValue) {
       this.$emit('do', newValue)
-    }
-}
+    },
+  },
 }
 </script>
 
 <style scoped>
-.test{
+.blockSort{
     padding: 10px;
     width: 100%;
-    height: 800px;
-    background-color: rgba(91, 190, 236, 0.253);
+    height: 560px;
+    background-color: rgba(190, 183, 255, 0.055);
     border-radius: 10px;
 }
-.otDoPrice h4{
-    width: 40px;
+
+.otDoPrice p{
+    width: 30px;
+}
+.otDoPrice input{
+    height: 30px;
 }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+@media (max-width: 1240px){
+  .test{
+    height: 300px;
+  }
+}
+
 </style>
