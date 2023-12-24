@@ -1,152 +1,126 @@
+<script setup>
+import { reactive, onMounted, computed, ref, watch } from 'vue'
+
+import TitleStore from '@/components/TitleStore.vue'
+import goodsComponent from '@/components/goodsComponent.vue'
+import sortBlock from './components/sortBlock.vue'
+
+import FetchData from '@/modules/FetchData.js'
+import saveToLocalStorage from '@/modules/SaveToLocalStorage.js'
+
+import mySort from '@/modules/DefaultSortPrice.js'
+import search from '@/modules/BasicSeachItem.js'
+import doFilter from '@/modules/doItemFilter.js'
+import otFilter from '@/modules/otItemFilter.js'
+
+let products = ref()
+const state = reactive({
+  ot: 0,
+  do: null,
+  sortBy: 'default',
+  search: null
+})
+
+onMounted(() => {
+  if (!products.value && localStorage.getItem('products')) {
+    products.value = JSON.parse(localStorage.getItem('products'))
+  } else {
+    loadData()
+  }
+})
+watch(
+  products,
+  (newValue) => {
+    saveToLocalStorage('products', newValue)
+  },
+  { deep: true }
+)
+
+const loadData = async () => {
+  try {
+    products.value = await FetchData()
+  } catch (error) {
+    console.log('Ошибка загрузки данных:', error)
+  }
+}
+
+function likeItemHandler(data) {
+  let index = products.value.findIndex((item) => item.id === data.id)
+  products.value[index].likeState = data.like
+}
+
+const sortFilterSearch = computed(() => {
+  const sortedProducts = mySort(products.value, state.sortBy)
+  const searchedProducts = search(sortedProducts, state.search)
+  const filteredOtProducts = otFilter(searchedProducts, state.ot)
+  return doFilter(filteredOtProducts, state.do)
+})
+</script>
+
 <template>
   <div class="container">
     <TitleStore class="title"></TitleStore>
     <div class="store">
-      <sortBlock v-if="products" class="sort" :products="products" @switchSort="switchSortHandler" @search="searchHandler" @ot="otHandler" @do="doHandler" ></sortBlock>
-      <goodsComponent class="goods" :dataCard="sortFilterSearch"></goodsComponent>
+      <sortBlock
+        class="sort"
+        v-if="products"
+        :products="products"
+        @switchSort="(data) => (state.sortBy = data)"
+        @search="(data) => (state.search = data)"
+        @ot="(data) => (state.ot = data)"
+        @do="(data) => (state.do = data)"
+      ></sortBlock>
+      <goodsComponent class="goods" :dataCard="sortFilterSearch" @likeItem="likeItemHandler"></goodsComponent>
     </div>
   </div>
 </template>
 
-<script>
-import TitleStore from '@/components/TitleStore.vue';
-import goodsComponent from '@/components/goodsComponent.vue';
-import sortBlock from './components/sortBlock.vue';
-export default {
-  components:{
-    TitleStore, goodsComponent,sortBlock
-  },
-  data(){
-    return{
-      products: null,
-      state:{
-        ot:0,
-        do: null,
-        sortBy: "default",
-        search: null
-      }
-    }
-  },
-  mounted(){
-    this.fetchData()
-  },
-  methods: {
-    async fetchData() {
-      try {
-        const response = await fetch('https://fakestoreapi.com/products');
-
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-
-        this.products = await response.json();
-      } catch (error) {
-        this.error = `Fetch error: ${error.message}`;
-        console.error('Fetch error:', error);
-      }
-    },
-    searchHandler(data) {
-      this.state.search = data;
-    },
-    switchSortHandler(data) {
-      this.state.sortBy = data;
-    },
-    otHandler(data) {
-      this.state.ot = data;
-    },
-    doHandler(data) {
-      this.state.do = data;
-    },
-    mySort(data, sortBy){
-      switch(sortBy){
-        case 'ascending': 
-          return [...data].sort((a, b) => a.price - b.price)
-        case 'descending': 
-          return [...data].sort((a, b) => b.price - a.price)
-        case 'default': 
-          return data
-      }
-    },
-    search(data, searchTerm) {
-      if(!searchTerm){
-        return data
-      }
-      const lowercaseSearchTerm = searchTerm.toLowerCase();
-      const regex = new RegExp(`\\b${lowercaseSearchTerm}`, 'i'); 
-
-      return data.filter(item => {
-        const values = Object.values(item);
-        return values.some(value => {
-          if (typeof value === 'string') {
-            return regex.test(value.toLowerCase());
-          }
-          return false;
-        });
-      });
-    },
-    otFilter(data, ot){
-      return ot ? data.filter(item=>item.price>ot) : data
-    },
-    doFilter(data, doT){
-      return doT ? data.filter(item=>item.price<doT) : data
-    }
-  },
-  computed: {
-    sortFilterSearch() {
-    const sortedProducts = this.mySort(this.products, this.state.sortBy);
-    const searchedProducts = this.search(sortedProducts, this.state.search);
-    const filteredOtProducts = this.otFilter(searchedProducts, this.state.ot);
-    const filteredDoProducts = this.doFilter(filteredOtProducts, this.state.do);
-
-    return filteredDoProducts;
-}
-}
-
-}
-
-</script>
-
 <style scoped>
-*{
+* {
   box-sizing: border-box;
   margin: 0;
 }
-.container{
-  padding: 0 50px;
-  padding-bottom: 20px;
+
+.container {
+  padding: 0 20px 20px;
   background-color: rgba(194, 194, 194, 0.068);
   margin-left: auto;
   margin-right: auto;
   margin-top: 20px;
-  width: 80%;
   height: 100%;
   border-radius: 60px;
 }
-.title{
+
+.title {
   margin-bottom: 10px;
   text-align: center;
 }
-.store{
+
+.store {
   display: flex;
   gap: 20px;
   justify-content: center;
 }
-.goods{
+
+.goods {
   width: 80%;
 }
-.sort{
+
+.sort {
   width: 20%;
 }
-@media (max-width: 1240px){
-  .store{
+
+@media (max-width: 1240px) {
+  .store {
     flex-direction: column;
   }
-  .sort{
+
+  .sort {
     width: 100%;
   }
-  .goods{
+
+  .goods {
     width: 100%;
   }
 }
-
 </style>
